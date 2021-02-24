@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" CanResize="False"
+        x:Class="BtcIO_Avalonia.NewTransactionWindow"
+
+  Title="Send transaction" Height="300" Width="500">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="13*"/>
+      <RowDefinition Height="189*"/>
+      <RowDefinition Height="67*"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="17*"/>
+      <ColumnDefinition Width="219*"/>
+      <ColumnDefinition Width="10*"/>
+    </Grid.ColumnDefinitions>
+
+    <Button Click="Button_Ok_Click" Content="Ok" HorizontalAlignment="Left" Margin="115,0,0,0" VerticalAlignment="Top" Width="75" Grid.Column="1"  Grid.Row="2"/>
+    <Button Click="Button_No_Click" Content="No" HorizontalAlignment="Left" Margin="222,0,0,0" VerticalAlignment="Top" Width="75" Grid.Column="1"  Grid.Row="2"/>
+    <TextBlock x:Name="tb" Grid.Column="1" TextWrapping="Wrap" Grid.Row="1"/>
+
+  </Grid>
+</Window>
