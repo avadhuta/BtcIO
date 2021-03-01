@@ -3,11 +3,14 @@
 A desktop app(console and with a GUI) for Windows and Linux, written in .NET CORE, designed to quickly generate privates and addresses by seed phrase, view balances and send transactions from your private accounts and wallets.
 
 
-screenshots:
+screenshots GUI:
 
 ![](https://i.imgur.com/ZxuXYuV.jpeg)
 ![](https://i.imgur.com/6evZ7YW.jpeg)
 ![](https://i.imgur.com/M8tslVi.jpg)
+
+screenshot console:
+
 ![](https://i.imgur.com/kjvhsnS.jpg)
 
 
