@@ -242,7 +242,7 @@ namespace BtcIO
 
         public static (string address, string wif) NewWifAddr(string seed, string net = "test3", int addrtype = 2)
         {
-            var b = Tech.Sha256(seed, 1000000);
+            var b = Tech.Sha256(seed, 100000);
             var network = net == "test3" ? Network.TestNet : Network.Main;
             var privateKey = new Key(b);
 
