@@ -17,7 +17,7 @@ using NBitcoin.OpenAsset;
 using Newtonsoft.Json;
 using QBitNinja.Client;
 using QBitNinja.Client.Models;
-
+using System.Net.NetworkInformation;
 
 
 namespace BtcIO
@@ -25,7 +25,7 @@ namespace BtcIO
     public static class WalletTools
     {
 
-        static string[] unspenttxBC(string addr, string net = "test3")
+        static string[] UnspenttxBc(string addr, string net = "test3")
         {
             var url = $"https://api.blockcypher.com/v1/btc/{net}/addrs/" + addr + "?unspentOnly=true";
             var req = Tech.webreq(url);
@@ -45,7 +45,6 @@ namespace BtcIO
             }
 
         }
-
 
         public static (bool suc, string hash) PushTx2Bc(string netStr, Transaction tx)
         {
@@ -69,17 +68,17 @@ namespace BtcIO
             else return (false, null);
         }
 
-        public static (Transaction tx, List<KeyValuePair<string, decimal>> toList, string note) sendbtc2one(string wif, string addrFrom, string addrTo, decimal value, decimal fee = 0.0002m)
+        public static (Transaction tx, List<KeyValuePair<string, decimal>> toList, string note) Sendbtc2One(string wif, string addrFrom, string addrTo, decimal value, decimal fee = 0.0002m)
         {
-            return sendbtc2many(wif, addrFrom, new[] {addrTo}, new[] {value}, fee);
+            return Sendbtc2Many(wif, addrFrom, new[] {addrTo}, new[] {value}, fee);
         }
         
         
-        public static (Transaction tx, List<KeyValuePair<string, decimal>> toList,  string note) sendbtc2many(string wif, string addrFrom, string[] addrTo, decimal[] value, decimal fee = 0.0002m)
+        public static (Transaction tx, List<KeyValuePair<string, decimal>> toList,  string note) Sendbtc2Many(string wif, string addrFrom, string[] addrTo, decimal[] value, decimal fee = 0.0002m)
         {
             try
             {
-                var b = get_ballance(addrFrom);
+                var b = GetBallance(addrFrom);
                 if (b < value.Sum() + fee) return (null, null, "not funds");
 
                 var bitcoinPrivateKey = new BitcoinSecret(wif);
@@ -88,7 +87,7 @@ namespace BtcIO
                 var scriptpubkey = address.ScriptPubKey;
 
                 var netStr = network == Network.Main ? "main" : "test3";
-                var uttx = unspenttxBC(address.ToString(), netStr);
+                var uttx = UnspenttxBc(address.ToString(), netStr);
                 if (uttx == null) return (null, null, "utxx proplem");
 
                 var tx = new HashSet<string>(uttx).ToArray();
@@ -222,7 +221,7 @@ namespace BtcIO
         //    return ttt.hash;
         //}
 
-        public static decimal get_ballance(string addr, string net = "test3")
+        public static decimal GetBallance(string addr, string net = "test3")
         {
             var url = $"https://api.blockcypher.com/v1/btc/{net}/addrs/{addr}/balance";
             var b = Tech.webreq(url);
@@ -238,39 +237,17 @@ namespace BtcIO
             }
         }
 
-        public static (string address, string wif) newWifAddr(int seed, string net = "test3", int adddrtype = 2)
+
+
+
+        public static (string address, string wif) NewWifAddr(string seed, string net = "test3", int addrtype = 2)
         {
-            var b = new byte[32];
-            var r = new Random(seed);
-            r.NextBytes(b);
+            var b = Tech.Sha256(seed, 1000000);
             var network = net == "test3" ? Network.TestNet : Network.Main;
             var privateKey = new Key(b);
 
-            return (privateKey.PubKey.GetAddress((ScriptPubKeyType) adddrtype, network).ToString(), privateKey.GetWif(network).ToString());
+            return (privateKey.PubKey.GetAddress((ScriptPubKeyType) addrtype, network).ToString(), privateKey.GetWif(network).ToString());
 
-        }
-
-        public static (string address, string wif) newWifAddr(string seed, string net = "test3", int adddrtype = 2)
-        {
-            var b = SHA256.Create().ComputeHash(Encoding.UTF8.GetBytes(seed));
-            var network = net == "test3" ? Network.TestNet : Network.Main;
-            var privateKey = new Key(b);
-
-            return (privateKey.PubKey.GetAddress((ScriptPubKeyType) adddrtype, network).ToString(), privateKey.GetWif(network).ToString());
-
-        }
-
-        public static Dictionary<int, (string wif, string addr)> OpenWallet(string seed, string net = "test3", int adddrtype = 2)
-        {
-            var res = new Dictionary<int, (string wif,string addr)>();
-
-            for (int i = 0; i < 100; i++)
-            {
-                var aw = newWifAddr(seed + i, net, adddrtype);
-                res.Add(i, ( aw.wif, aw.address ));
-            }
-
-            return res;
         }
 
 

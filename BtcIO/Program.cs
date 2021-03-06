@@ -58,7 +58,7 @@ namespace BtcIO
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Send btc from wallet to one address:");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("sw 'wallet' 'addr_to' value fee(optional)\n");
+            Console.WriteLine("sw 'w+index' 'addr_to' value fee(optional)\n");
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Get help:");
@@ -80,7 +80,7 @@ namespace BtcIO
                 int t = 2;
                 if (command.Length == 3) int.TryParse(command[2], out t);
 
-                var aw = WalletTools.newWifAddr(new Random().Next(int.MaxValue) + (int)DateTime.Now.Ticks, net, t);
+                var aw = WalletTools.NewWifAddr(Tech.RandomSeed(), net, t);
                 Console.WriteLine($"{aw.wif} {aw.address}");
             }
             else Console.WriteLine("n net['m|t'] type[0|1|2](optional)");
@@ -152,7 +152,7 @@ namespace BtcIO
                 Console.ForegroundColor = ConsoleColor.Green;
                 var addrs = av.Select(p => p.Key).ToArray();
                 var values = av.Select(p => p.Value).ToArray();
-                var t = WalletTools.sendbtc2many(w, a, addrs, values, fee);
+                var t = WalletTools.Sendbtc2Many(w, a, addrs, values, fee);
 
                 PrintTXDetails(t);
 
@@ -171,9 +171,9 @@ namespace BtcIO
                 if (command.Length == 5) fee = decimal.Parse(command[4], CultureInfo.InvariantCulture);
 
                 int num = int.Parse(command[1].Replace("w", ""));
-                var aw = WalletTools.newWifAddr(w.seed + num, w.net, w.t);
+                var aw = WalletTools.NewWifAddr(w.seed + num, w.net, w.t);
 
-                var t = WalletTools.sendbtc2one(aw.wif, aw.address, command[2], decimal.Parse(command[3], CultureInfo.InvariantCulture), fee);
+                var t = WalletTools.Sendbtc2One(aw.wif, aw.address, command[2], decimal.Parse(command[3], CultureInfo.InvariantCulture), fee);
 
                 PrintTXDetails(t);
 
@@ -191,7 +191,7 @@ namespace BtcIO
             {
                 if (command.Length == 6) fee = decimal.Parse(command[4], CultureInfo.InvariantCulture);
 
-                var t = WalletTools.sendbtc2one(command[1], command[2], command[3], decimal.Parse(command[4], CultureInfo.InvariantCulture), fee);
+                var t = WalletTools.Sendbtc2One(command[1], command[2], command[3], decimal.Parse(command[4], CultureInfo.InvariantCulture), fee);
 
                 PrintTXDetails(t);
             }
@@ -253,14 +253,14 @@ namespace BtcIO
                 if (command[1][0] == 'w')
                 {
                     var n = int.Parse(c.Replace("w", ""));
-                    c = WalletTools.newWifAddr(w.seed + n, w.net, w.t).address;
+                    c = WalletTools.NewWifAddr(w.seed + n, w.net, w.t).address;
                     Console.WriteLine(c);
                 }
 
                 var c0 = c[0];
                 if (c0 == '3' || c0 == '1' || c0 == 'b') net = "main";
 
-                var b = WalletTools.get_ballance(c, net);
+                var b = WalletTools.GetBallance(c, net);
                 Console.WriteLine(b);
             }
             else
@@ -306,51 +306,12 @@ namespace BtcIO
 
         }
 
-        public static void Show()
-        {
-            var priv = new byte[32];
-            priv = priv.Select((b, i) => (byte)i).ToArray();
-            //  new Random().NextBytes(priv);
-
-            var net = Network.Main;
-            var pk = new Key(priv);
-            var pk2 = new Key(priv, fCompressedIn: false);
-
-            var hexPriv = pk.ToHex();
-            var wifMainUnCompress = pk2.GetWif(Network.Main);
-            var wifMainCompress = pk.GetWif(Network.Main);
-            var wifTestUnCompress = pk2.GetWif(Network.TestNet);
-            var wifTestCompress = pk.GetWif(Network.TestNet);
-
-            var addrMainCompress = pk.PubKey.GetAddress(ScriptPubKeyType.Legacy,Network.Main);
-            var addrMainUnCompress = pk2.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
-            var addrTestCompress = pk.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.TestNet);
-            var addrTestUnCompress = pk2.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.TestNet);
-
-            Console.WriteLine($"hexPriv: {hexPriv}");
-            Console.WriteLine($"wifMainUnCompress: {wifMainUnCompress}");
-            Console.WriteLine($"wifMainCompress: {wifMainCompress}");
-            Console.WriteLine($"wifTestUnCompress: {wifTestUnCompress}");
-            Console.WriteLine($"wifTestCompress: {wifTestCompress}");
-            Console.WriteLine();
-            Console.WriteLine($"pubkeyCompress: {pk.PubKey.ToHex()}");
-            Console.WriteLine($"pubkeyUnCompress: {pk2.PubKey.ToHex()}");
-            Console.WriteLine();
-            Console.WriteLine($"addrMainCompressBase58: {addrMainCompress}");
-            Console.WriteLine($"addrMainUnCompressBase58: {addrMainUnCompress}");
-            Console.WriteLine($"addrTestCompressBase58: {addrTestCompress}");
-            Console.WriteLine($"addrTestUnCompressBase58: {addrTestUnCompress}");
-
-
-        }
 
 
         static void Main(string[] args)
         {
-             //  Show();
-          ProcessLoop();
 
-
+            ProcessLoop();
 
             Console.ReadKey();
         }
