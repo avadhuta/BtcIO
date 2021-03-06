@@ -5,7 +5,7 @@
         mc:Ignorable="d" CanResize="False"
         x:Class="BtcIO_Avalonia.NewTransactionWindow"
 
-  Title="Send transaction" Height="300" Width="500">
+  Title="Send Transaction" Height="300" Width="500">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="13*"/>

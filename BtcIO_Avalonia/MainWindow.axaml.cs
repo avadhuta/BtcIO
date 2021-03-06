@@ -71,7 +71,7 @@ namespace BtcIO_Avalonia
             var c0 = a[0];
             if (c0 == '3' || c0 == '1' || c0 == 'b') net = "main";
 
-            var b = WalletTools.get_ballance(a, net);
+            var b = WalletTools.GetBallance(a, net);
 
             ballLabel.Content = b;
         }
@@ -86,7 +86,7 @@ namespace BtcIO_Avalonia
 
             if (pv)
             {
-                var t = WalletTools.sendbtc2one(wifTb.Text, addrFromTb.Text, addrToTb.Text, value, fee);
+                var t = WalletTools.Sendbtc2One(wifTb.Text, addrFromTb.Text, addrToTb.Text, value, fee);
                 if(t.tx==null) return;
 
                 var m = $"you send to:\n";
@@ -132,7 +132,7 @@ namespace BtcIO_Avalonia
                 var net = (bool)netCheck1.IsChecked ? "main" : "test3";
                 var addrtype = newAddrTypeCombo.SelectedIndex;
 
-                var aw = WalletTools.newWifAddr(seed, net, addrtype);
+                var aw = WalletTools.NewWifAddr(seed, net, addrtype);
 
                 newAddrTb.Text = aw.address;
                 newWifTb.Text = aw.wif;
