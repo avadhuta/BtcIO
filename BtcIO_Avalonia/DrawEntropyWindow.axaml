@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" 
+        x:Class="BtcIO_Avalonia.DrawEntropyWindow"
+        WindowStartupLocation="CenterScreen"
+         Title="DrawEntropyWindow" Height="300" Width="300" >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="234*"/>
+            <RowDefinition Height="35*"/>
+        </Grid.RowDefinitions>
+        <Canvas PointerPressed="Canvas_OnMouseDown" PointerMoved="Canvas_OnMouseMove"  ClipToBounds="True"  x:Name="canvas">
+            <Canvas.Background>
+                <SolidColorBrush Color="White" Opacity="1"/>
+            </Canvas.Background>
+        </Canvas>
+      <Label x:Name="EntropyPrctLb" Content="0%" HorizontalAlignment="Left" Margin="131,0,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

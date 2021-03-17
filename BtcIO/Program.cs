@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BtcWalletTools;
@@ -71,6 +73,8 @@ namespace BtcIO
             Console.WriteLine("clr\n");
 
         }
+
+
         private static void NewAddress(string[] command)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -78,13 +82,28 @@ namespace BtcIO
             {
                 var net = command[1] == "m" ? "main" : "test3";
                 int t = 2;
-                if (command.Length == 3) int.TryParse(command[2], out t);
+                if (command.Length == 3) Int32.TryParse(command[2], out t);
 
-                var aw = WalletTools.NewWifAddr(Tech.RandomSeed(), net, t);
+                byte[] customEntropy = null;
+                Console.WriteLine("do yo want enter custom entropy? 'y/n'");
+                if (Console.ReadKey().KeyChar == 'y') customEntropy = KeyboardEntropy();
+
+                var seed = Tech.RandomSeed(customEntropy);
+                Console.WriteLine($"\nseed phrase:");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(seed);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"WIF and address:");
+                Console.ForegroundColor = ConsoleColor.Red;
+                var aw = WalletTools.NewWifAddr(seed, net, t);
                 Console.WriteLine($"{aw.wif} {aw.address}");
+
+                Console.ForegroundColor = ConsoleColor.Green;
             }
             else Console.WriteLine("n net['m|t'] type[0|1|2](optional)");
         }
+
+
 
         static (string seed, string net, int t) w;
         private static void OpenWallet(string[] command)
@@ -100,7 +119,7 @@ namespace BtcIO
                 if(command.Length >= 2) net = command[1] == "m" ? "main" : "test3";
 
                 int t = 2;
-                if (command.Length == 3) int.TryParse(command[2], out t);
+                if (command.Length == 3) Int32.TryParse(command[2], out t);
 
                 w = (seed, net, t);
                 Console.ForegroundColor = ConsoleColor.Green;
@@ -112,11 +131,13 @@ namespace BtcIO
 
             else Console.WriteLine("w net['m|t'] type[0|1|2](optional)");
         }
+
+
         private static void Send2Many(string[] command)
         {
             if (command.Length >= 3)
             {
-                if (command.Length >= 4) fee = decimal.Parse(command[3], CultureInfo.InvariantCulture);
+                if (command.Length >= 4) fee = Decimal.Parse(command[3], CultureInfo.InvariantCulture);
                 var w = command[1];
                 var a = command[2];
 
@@ -137,7 +158,7 @@ namespace BtcIO
                             var avts = ttt[j].Split(' ');
                             if (avts.Length < 2) break;
                             av.Add(new KeyValuePair<string, decimal>(avts[0],
-                                decimal.Parse(avts[1], CultureInfo.InvariantCulture)));
+                                Decimal.Parse(avts[1], CultureInfo.InvariantCulture)));
                             i++;
                         }
                     }
@@ -168,12 +189,12 @@ namespace BtcIO
             Console.ForegroundColor = ConsoleColor.Green;
             if (command.Length >= 3)
             {
-                if (command.Length == 5) fee = decimal.Parse(command[4], CultureInfo.InvariantCulture);
+                if (command.Length == 5) fee = Decimal.Parse(command[4], CultureInfo.InvariantCulture);
 
-                int num = int.Parse(command[1].Replace("w", ""));
+                int num = Int32.Parse(command[1].Replace("w", ""));
                 var aw = WalletTools.NewWifAddr(w.seed + num, w.net, w.t);
 
-                var t = WalletTools.Sendbtc2One(aw.wif, aw.address, command[2], decimal.Parse(command[3], CultureInfo.InvariantCulture), fee);
+                var t = WalletTools.Sendbtc2One(aw.wif, aw.address, command[2], Decimal.Parse(command[3], CultureInfo.InvariantCulture), fee);
 
                 PrintTXDetails(t);
 
@@ -189,9 +210,9 @@ namespace BtcIO
             Console.ForegroundColor = ConsoleColor.Green;
             if (command.Length >= 5)
             {
-                if (command.Length == 6) fee = decimal.Parse(command[4], CultureInfo.InvariantCulture);
+                if (command.Length == 6) fee = Decimal.Parse(command[4], CultureInfo.InvariantCulture);
 
-                var t = WalletTools.Sendbtc2One(command[1], command[2], command[3], decimal.Parse(command[4], CultureInfo.InvariantCulture), fee);
+                var t = WalletTools.Sendbtc2One(command[1], command[2], command[3], Decimal.Parse(command[4], CultureInfo.InvariantCulture), fee);
 
                 PrintTXDetails(t);
             }
@@ -252,7 +273,7 @@ namespace BtcIO
                 Console.ForegroundColor = ConsoleColor.Green;
                 if (command[1][0] == 'w')
                 {
-                    var n = int.Parse(c.Replace("w", ""));
+                    var n = Int32.Parse(c.Replace("w", ""));
                     c = WalletTools.NewWifAddr(w.seed + n, w.net, w.t).address;
                     Console.WriteLine(c);
                 }
@@ -269,6 +290,47 @@ namespace BtcIO
                 Console.WriteLine("b 'your_btc_address'");
                 Console.WriteLine("b 'w+index'");
             }
+        }
+
+        public static byte[] KeyboardEntropy()
+        {
+            Console.WriteLine("\nenter random symbols from keyboard");
+
+            List<byte> symbols = new List<byte>();
+            var pos = Console.GetCursorPosition();
+
+            int N = 128;
+            char curent = '\0';
+
+            while (symbols.Count < N)
+            {
+                var c = Console.ReadKey().KeyChar;
+                if (c != curent)
+                {
+                    curent = c;
+                    symbols.Add((byte)curent);
+                }
+
+
+                Console.SetCursorPosition(pos.Left, pos.Top);
+                Console.WriteLine($"{(int)(((double)symbols.Count / N)*100)}%");
+            }
+
+            while (true)
+            {
+                Console.SetCursorPosition(pos.Left, pos.Top);
+                Console.WriteLine("entropy created, enter 'Y'");
+                if (Console.ReadKey().KeyChar == 'Y') break;
+
+            }
+
+            var sha1 = Tech.Sha256(symbols.ToArray());
+            var sha2 = Tech.Sha256(symbols.ToArray(), 2);
+            var merge = sha1.ToList();
+            merge.AddRange(sha2);
+
+
+            return merge.ToArray();
         }
 
 
@@ -292,7 +354,7 @@ namespace BtcIO
                         case "w": OpenWallet(command); break;
                         case "h": HelpMenu(); break;
                         case "clr": Console.Clear(); break;
-                        default: HelpMenu(); break;
+                       // default: HelpMenu(); break;
                     }
 
                 }
@@ -311,7 +373,7 @@ namespace BtcIO
         static void Main(string[] args)
         {
 
-            ProcessLoop();
+             ProcessLoop();
 
             Console.ReadKey();
         }

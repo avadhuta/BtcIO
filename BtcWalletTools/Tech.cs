@@ -75,32 +75,70 @@ namespace BtcWalletTools
 
         public static string[] words = ReadResource("words.txt").Split('\n');
 
-        public static string RandomSeed()
+        public static string RandomSeed(byte[] customEntropy = null)
         {
+            var rnd = Rnd3(customEntropy);
             string res = "";
-            for (int i = 0; i < 12; i++) res += words[Rnd2()].ToLower() + (i < 11 ? " " : "");
+            for (int i = 0; i < 12; i++) res += words[rnd[i]].ToLower() + (i < 11 ? " " : "");
 
             return res;
         }
 
 
         static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+
         public static uint Rnd2()
         {
             var data = new byte[sizeof(uint)];
             rng.GetBytes(data);
-            return (uint) (BitConverter.ToUInt32(data, 0) % (words.Length - 1));
+            return (uint)(BitConverter.ToUInt32(data, 0) % (words.Length - 1));
+        }
+
+        public static uint[] Rnd3(byte[] customEntropy = null)
+        {
+            var data = new byte[sizeof(uint) * 12];
+            rng.GetBytes(data);
+
+            if (customEntropy != null)
+                for (int i = 0; i < data.Length; i++)
+                {
+                    if (i < customEntropy.Length)
+                        data[i] = (byte)(data[i] ^ customEntropy[i]);
+                }
+
+            uint[] nums = new uint[12];
+            for (int i = 0; i < 12; i++)
+            {
+                nums[i] = (uint)(BitConverter.ToUInt32(data, i * sizeof(uint)) % (words.Length - 1));
+            }
+
+            return nums;
         }
 
 
         public static byte[] Sha256(string seed, int itter = 1)
         {
-            byte[] b = Encoding.UTF8.GetBytes(seed);
-            for (int i = 0; i < itter; i++) b = SHA256.Create().ComputeHash(b);
-            b = SHA256.Create().ComputeHash(b);
-
-            return b;
+            return Sha256(Encoding.UTF8.GetBytes(seed), itter);
         }
+
+        public static byte[] Sha256(byte[] src, int itter = 1)
+        {
+            byte[] res = src;
+            var sha256 = SHA256.Create();
+            for (int i = 0; i < itter; i++) res = sha256.ComputeHash(res);
+
+            return res;
+        }
+
+        public static string HexFromBytes(this byte[] src)
+        {
+            string res = "";
+            for (int i = 0; i < src.Length; i++)
+                res += $"{src[i]:x2}";
+            return res;
+        }
+
+
 
 
         public static string ReadResource(string name)

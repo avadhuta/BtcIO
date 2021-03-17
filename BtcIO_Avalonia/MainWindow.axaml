@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        x:Class="BtcIO_Avalonia.MainWindow"
+        x:Class="BtcIO_Avalonia.MainWindow" WindowStartupLocation="CenterScreen"
         CanResize="False"  Title="BtcIO 0.1" Height="300" Width="600">
   <Grid>
     <TabControl>
@@ -26,23 +26,28 @@
               <RowDefinition Height="34*"/>
               <RowDefinition Height="20*"/>
             </Grid.RowDefinitions>
-            <Label Content="index:" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Bottom" Padding="5,0,12,0" Margin="360,0,0,0"  />
-            <TextBox KeyUp="seedTb_TextChanged" TextInput="seedTb_TextInput" x:Name="seedTb" Grid.Column="1" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="18" />
-            <TextBox x:Name="newAddrTb"  IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Bottom" FontSize="16" Grid.Column="1" Height="18" Grid.Row="3"/>
-            <TextBox Name="newWifTb" IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Bottom"  Grid.Column="1" Height="22" Grid.Row="2"/>
+            <Label Content="index:" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" VerticalContentAlignment="Bottom" Padding="0,0,0,0" Margin="378,10,10,8" Height="16" Width="45"  Grid.ColumnSpan="2"  />
+            <TextBox PasswordChar="*" KeyUp="seedTb_TextChanged" DoubleTapped="Seed_DbClick" TextInput="seedTb_TextInput" x:Name="seedTb" Grid.Column="1" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="18" />
+            <TextBox x:Name="newAddrTb" DoubleTapped="Addr_DbClick"  IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Bottom" FontSize="16" Grid.Column="1" Height="18" Grid.Row="3"/>
+            <TextBox PasswordChar="*" Name="newWifTb" DoubleTapped="Wif_DbClick" IsReadOnly="True" TextWrapping="Wrap" VerticalAlignment="Bottom"  Grid.Column="1" Height="22" Grid.Row="2"/>
 
             <Button Click="NewAddress_Click" Content="New" HorizontalAlignment="Right" VerticalAlignment="Bottom"  FontSize="16"  Grid.Column="1" Grid.Row="4" />
-            <RadioButton Click="NetCheck1_OnChecked" x:Name="netCheck1" Content="main net" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" IsChecked="True" />
-            <RadioButton Click="NetCheck1_OnChecked" x:Name="netCheck2" Content="test net" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" IsChecked="True" Margin="100,0,0,0" />
-            <ComboBox SelectionChanged="NewAddrTypeCombo_OnSelectionChanged"  x:Name="newAddrTypeCombo" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="130" SelectedIndex="0"  Margin="200,0,0,0">
+
+            <ComboBox SelectionChanged="NewAddrTypeCombo_OnSelectionChanged"  x:Name="netTypeCombo" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="80" SelectedIndex="0"  Margin="0,0,0,0">
+              <ComboBoxItem>main</ComboBoxItem>
+              <ComboBoxItem>test</ComboBoxItem>
+            </ComboBox>            
+            <ComboBox SelectionChanged="NewAddrTypeCombo_OnSelectionChanged"  x:Name="newAddrTypeCombo" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="130" SelectedIndex="0"  Margin="100,0,0,0">
               <ComboBoxItem>Legacy</ComboBoxItem>
               <ComboBoxItem>Segwit</ComboBoxItem>
               <ComboBoxItem>SegwitP2SH</ComboBoxItem>
             </ComboBox>
-            <TextBox KeyDown="indexTb_TextChanged" x:Name="indexTb" Grid.Column="1" HorizontalAlignment="Right" Text="0" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="44"  Height="18"/>
+            <TextBox  KeyUp="indexTb_TextChanged" x:Name="indexTb" Grid.Column="1" HorizontalAlignment="Right" Text="0" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="44"  Height="18"/>
             <Label Content="seed phrase" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#FF8D8D8D" Padding="0,0,0,0" Grid.Column="1"  Margin="0,3,0,0" Height="16" Grid.Row="1"/>
             <Label Content="wif" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="2" Foreground="#FF8D8D8D" Padding="0,0,0,0"  Grid.Column="1" Height="16" Margin="0,-2,0,0" />
             <Label Content="address" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="3" Foreground="#FF8D8D8D" Padding="0,0,0,0"  Grid.Column="1"  Height="16" Margin="0,0,0,0"/>
+            <CheckBox Checked="Entropy_OnChecked" Unchecked="Entropy_UnChecked"  x:Name="entropyChB" Content="user entropy" Grid.Column="1" HorizontalAlignment="Left" Margin="250,0,0,0"  VerticalAlignment="Bottom"/>
+            <Label x:Name="copyInfoLb" Foreground="#FF8D8D8D" Content="double-click field to copy" Grid.Column="1" HorizontalAlignment="Left" Margin="0,9,0,0" Grid.Row="4" VerticalAlignment="Top"/>
 
 
           </Grid>
@@ -97,7 +102,7 @@
             <Label Content="value" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#FF8D8D8D" Padding="0,0,0,0"  Grid.Column="1" Grid.Row="3" Margin="0,0,0,0"/>
             <Label Content="fee" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#FF8D8D8D" Padding="0,0,0,0"  Grid.Column="1" Grid.Row="3" Margin="155,0,0,0"/>
 
-            <TextBox x:Name="wifTb" Text="" TextWrapping="Wrap" VerticalAlignment="Bottom" Grid.Column="1" Height="18"/>
+            <TextBox PasswordChar="*" x:Name="wifTb" Text="" TextWrapping="Wrap" VerticalAlignment="Bottom" Grid.Column="1" Height="18"/>
             <TextBox Name="addrFromTb" Text="" TextWrapping="Wrap" VerticalAlignment="Bottom" FontSize="16" Grid.Column="1" Height="23" Grid.Row="1"/>
             <TextBox x:Name="addrToTb" Text="" TextWrapping="Wrap" VerticalAlignment="Bottom" FontSize="16" Grid.Column="1" Height="23" Grid.Row="2"/>
             <TextBox x:Name="valueTb" HorizontalAlignment="Left" Text="-1" TextWrapping="Wrap" VerticalAlignment="Bottom" Width="110" FontSize="16" Grid.Column="1" Height="23" Grid.Row="3"/>
