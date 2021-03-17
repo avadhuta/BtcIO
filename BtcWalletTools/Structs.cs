@@ -4,6 +4,37 @@ using System.Text;
 
 namespace BtcIO
 {
+
+    public class txref
+    {
+        public string tx_hash { get; set; }
+        public int block_height { get; set; }
+        public int tx_input_n { get; set; }
+        public int tx_output_n { get; set; }
+        public int value { get; set; }
+        public int ref_balance { get; set; }
+        public bool spent { get; set; }
+        public int confirmations { get; set; }
+        public DateTime confirmed { get; set; }
+        public bool double_spend { get; set; }
+        public string script { get; set; }
+    }
+
+    public class txxx
+    {
+        public string address { get; set; }
+        public int total_received { get; set; }
+        public int total_sent { get; set; }
+        public int balance { get; set; }
+        public int unconfirmed_balance { get; set; }
+        public int final_balance { get; set; }
+        public int n_tx { get; set; }
+        public int unconfirmed_n_tx { get; set; }
+        public int final_n_tx { get; set; }
+        public List<txref> txrefs { get; set; }
+        public string tx_url { get; set; }
+    }
+
     struct req
     {
         public string address;

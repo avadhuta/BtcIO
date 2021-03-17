@@ -25,22 +25,18 @@ namespace BtcIO
     public static class WalletTools
     {
 
-        static string[] UnspenttxBc(string addr, string net = "test3")
+        static txref[] UnspenttxBc(string addr, string net = "test3")
         {
-            var url = $"https://api.blockcypher.com/v1/btc/{net}/addrs/" + addr + "?unspentOnly=true";
-            var req = Tech.webreq(url);
+            var req = Tech.webreq($"https://api.blockcypher.com/v1/btc/{net}/addrs/" + addr + "?unspentOnly=true&includeScript=true");
             if (req == null) return null;
-
             try
             {
-                var res = JsonConvert.DeserializeObject<req>(req).txrefs.Where(txx => !txx.spent)?.Select(t => t.tx_hash).ToArray();
+                var res = JsonConvert.DeserializeObject<txxx>(req).txrefs.ToArray();
                 return res;
             }
             catch (Exception e)
             {
-                Console.WriteLine(req);
-                if(req.Contains("unconfirmed_balance"))Console.WriteLine("there are unconfirmed transactions, wait until they are confirmed");
-
+                if(req.Contains("unconfirmed_balance")) throw new Exception("there are unconfirmed transactions, wait until they are confirmed");
                 return null;
             }
 
@@ -74,7 +70,117 @@ namespace BtcIO
         }
         
         
-        public static (Transaction tx, List<KeyValuePair<string, decimal>> toList,  string note) Sendbtc2Many(string wif, string addrFrom, string[] addrTo, decimal[] value, decimal fee = 0.0002m)
+        //public static (Transaction tx, List<KeyValuePair<string, decimal>> toList,  string note) Sendbtc2Many(string wif, string addrFrom, string[] addrTo, decimal[] value, decimal fee = 0.0002m)
+        //{
+        //    try
+        //    {
+        //        var b = GetBallance(addrFrom);
+        //        if (b < value.Sum() + fee) return (null, null, "not funds");
+
+        //        var bitcoinPrivateKey = new BitcoinSecret(wif);
+        //        var network = bitcoinPrivateKey.Network;
+        //        var address = BitcoinAddress.Create(addrFrom, network);
+        //        var scriptpubkey = address.ScriptPubKey;
+
+        //        var netStr = network == Network.Main ? "main" : "test3";
+        //        var uttx = UnspenttxBc(address.ToString(), netStr);
+        //        if (uttx == null) return (null, null, "utxx proplem");
+
+        //        var tx = new HashSet<string>(uttx).ToArray();
+
+        //        var client = new QBitNinjaClient(network);
+        //        var transaction = Transaction.Create(network);
+
+        //        var coins = new List<ICoin>();
+        //        long satoshi = 0;
+
+        //        decimal valueSum = value.Sum(d => d > 0 ? d : 0);
+        //        valueSum = value.Count(d => d < 0) == 0 ? valueSum : b;
+
+        //        for (int i = 0; i < tx.Length; i++)
+        //        {
+        //            var transactionId = uint256.Parse(tx[i]);
+        //            var transactionResponse = client.GetTransaction(transactionId).Result;
+        //            if (transactionResponse == null) continue;
+        //            var receivedCoins = transactionResponse.ReceivedCoins;
+
+        //            foreach (var coin in receivedCoins)
+        //            {
+        //                if (coin.TxOut.ScriptPubKey == scriptpubkey)
+        //                {
+        //                    transaction.Inputs.Add(new TxIn() { PrevOut = coin.Outpoint });
+        //                    satoshi += ((Coin)coin).Amount.Satoshi;
+        //                    coins.Add(coin);
+        //                }
+        //            }
+
+        //            if (((decimal)satoshi / 100000000) - fee > valueSum) break;
+        //        }
+
+
+        //        decimal txInAmount = ((decimal)satoshi / 100000000) - fee;
+
+        //        decimal all = 0;
+
+        //        var toList = new List<KeyValuePair<string, decimal>>();
+
+        //        for (int i = 0; i < addrTo.Length; i++)
+        //        {
+        //            var reciveAddr = BitcoinAddress.Create(addrTo[i], network);
+        //            var v = value[i] > 0 ? value[i] : txInAmount - all;
+
+        //            if (all + v <= txInAmount)
+        //            {
+        //                all += v;
+
+        //                TxOut baseOut = new TxOut()
+        //                {
+        //                    Value = new Money(v, MoneyUnit.BTC),
+        //                    ScriptPubKey = reciveAddr.ScriptPubKey
+        //                };
+
+        //                transaction.Outputs.Add(baseOut);
+
+        //                toList.Add(new KeyValuePair<string, decimal>(addrTo[i],v));
+        //            }
+
+
+        //        }
+
+        //        var changeBackAmount = txInAmount - all;
+
+        //        if (changeBackAmount > 0)
+        //        {
+        //            TxOut changeBackTxOut = new TxOut()
+        //            {
+        //                Value = new Money(changeBackAmount, MoneyUnit.BTC),
+        //                ScriptPubKey = scriptpubkey
+        //            };
+        //            transaction.Outputs.Add(changeBackTxOut);
+
+        //            toList.Add(new KeyValuePair<string, decimal>("changeBack "+ addrFrom, changeBackAmount));
+        //        }
+
+
+        //        if(!address.ScriptPubKey.IsScriptType(ScriptType.Witness))
+        //            for (int i = 0; i < transaction.Inputs.Count; i++) transaction.Inputs[i].ScriptSig = scriptpubkey;
+
+
+        //        transaction.Sign(bitcoinPrivateKey, coins.ToArray());
+
+        //        return (transaction, toList, netStr);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return (null, null, e.ToString());
+        //    }
+
+        //}
+
+
+
+
+        public static (Transaction tx, List<KeyValuePair<string, decimal>> toList, string note) Sendbtc2Many(string wif, string addrFrom, string[] addrTo, decimal[] value, decimal fee = 0.0002m)
         {
             try
             {
@@ -87,12 +193,9 @@ namespace BtcIO
                 var scriptpubkey = address.ScriptPubKey;
 
                 var netStr = network == Network.Main ? "main" : "test3";
-                var uttx = UnspenttxBc(address.ToString(), netStr);
-                if (uttx == null) return (null, null, "utxx proplem");
+                var tx2 = UnspenttxBc(address.ToString(), netStr);
+                if (tx2 == null) return (null, null, "utxx proplem");
 
-                var tx = new HashSet<string>(uttx).ToArray();
-
-                var client = new QBitNinjaClient(network);
                 var transaction = Transaction.Create(network);
 
                 var coins = new List<ICoin>();
@@ -101,22 +204,13 @@ namespace BtcIO
                 decimal valueSum = value.Sum(d => d > 0 ? d : 0);
                 valueSum = value.Count(d => d < 0) == 0 ? valueSum : b;
 
-                for (int i = 0; i < tx.Length; i++)
+                for (int i = 0; i < tx2.Length; i++)
                 {
-                    var transactionId = uint256.Parse(tx[i]);
-                    var transactionResponse = client.GetTransaction(transactionId).Result;
-                    if (transactionResponse == null) continue;
-                    var receivedCoins = transactionResponse.ReceivedCoins;
+                    var coin = new Coin(uint256.Parse(tx2[i].tx_hash), (uint)tx2[i].tx_output_n, tx2[i].value, scriptpubkey);
 
-                    foreach (var coin in receivedCoins)
-                    {
-                        if (coin.TxOut.ScriptPubKey == scriptpubkey)
-                        {
-                            transaction.Inputs.Add(new TxIn() { PrevOut = coin.Outpoint });
-                            satoshi += ((Coin)coin).Amount.Satoshi;
-                            coins.Add(coin);
-                        }
-                    }
+                    transaction.Inputs.Add(new TxIn() { PrevOut = coin.Outpoint });
+                    satoshi += ((Coin)coin).Amount.Satoshi;
+                    coins.Add(coin);
 
                     if (((decimal)satoshi / 100000000) - fee > valueSum) break;
                 }
@@ -145,7 +239,7 @@ namespace BtcIO
 
                         transaction.Outputs.Add(baseOut);
 
-                        toList.Add(new KeyValuePair<string, decimal>(addrTo[i],v));
+                        toList.Add(new KeyValuePair<string, decimal>(addrTo[i], v));
                     }
 
 
@@ -162,11 +256,11 @@ namespace BtcIO
                     };
                     transaction.Outputs.Add(changeBackTxOut);
 
-                    toList.Add(new KeyValuePair<string, decimal>("changeBack "+ addrFrom, changeBackAmount));
+                    toList.Add(new KeyValuePair<string, decimal>("changeBack " + addrFrom, changeBackAmount));
                 }
 
 
-                if(!address.ScriptPubKey.IsScriptType(ScriptType.Witness))
+                if (!address.ScriptPubKey.IsScriptType(ScriptType.Witness))
                     for (int i = 0; i < transaction.Inputs.Count; i++) transaction.Inputs[i].ScriptSig = scriptpubkey;
 
 
@@ -242,7 +336,7 @@ namespace BtcIO
 
         public static (string address, string wif) NewWifAddr(string seed, string net = "test3", int addrtype = 2)
         {
-            var b = Tech.Sha256(seed, 100000);
+            var b = Tech.Sha256(seed);
             var network = net == "test3" ? Network.TestNet : Network.Main;
             var privateKey = new Key(b);
 

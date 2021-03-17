@@ -28,19 +28,20 @@ namespace BtcIO_Avalonia
 
         private Label ballLabel;
         private TextBox addrTb;
+        private CheckBox entropyChB;
 
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
 
-            netCheck1 = this.FindControl<RadioButton>("netCheck1");
-            netCheck2 = this.FindControl<RadioButton>("netCheck2");
             newAddrTypeCombo = this.FindControl<ComboBox>("newAddrTypeCombo");
+            netTypeCombo = this.FindControl<ComboBox>("netTypeCombo");
             indexTb = this.FindControl<TextBox>("indexTb");
             seedTb = this.FindControl<TextBox>("seedTb");
             newWifTb = this.FindControl<TextBox>("newWifTb");
             newAddrTb = this.FindControl<TextBox>("newAddrTb");
-
+            entropyChB = this.FindControl<CheckBox>("entropyChB");
+            copyInfoLb = this.FindControl<Label>("copyInfoLb");
 
             ballLabel = this.FindControl<Label>("ballLabel");
             addrTb = this.FindControl<TextBox>("addrTb");
@@ -53,20 +54,23 @@ namespace BtcIO_Avalonia
             addrFromTb = this.FindControl<TextBox>("addrFromTb");
             addrToTb = this.FindControl<TextBox>("addrToTb");
             TxTb = this.FindControl<TextBox>("TxTb");
+
+
+
         }
 
 
 
         private TextBox valueTb, feeTb, wifTb, addrFromTb, addrToTb, TxTb, indexTb, seedTb, newWifTb, newAddrTb;
-        private Label txLabel;
-        private ComboBox newAddrTypeCombo;
-        private RadioButton netCheck1, netCheck2;
+        private Label txLabel, copyInfoLb;
+        private ComboBox newAddrTypeCombo, netTypeCombo;
 
 
         private void GetBallance_Click(object sender, RoutedEventArgs e)
         {
             string net = "test3";
             var a = addrTb.Text;
+            if(a==null) return;
 
             var c0 = a[0];
             if (c0 == '3' || c0 == '1' || c0 == 'b') net = "main";
@@ -74,6 +78,22 @@ namespace BtcIO_Avalonia
             var b = WalletTools.GetBallance(a, net);
 
             ballLabel.Content = b;
+        }
+
+        private void Seed_DbClick(object sender, RoutedEventArgs e)
+        {
+            Clipboard.Copy2(seedTb.Text);
+            copyInfoLb.Content = "seed phrase copied to clipboard";
+        }
+        private void Wif_DbClick(object sender, RoutedEventArgs e)
+        {
+            Clipboard.Copy2(wifTb.Text);
+            copyInfoLb.Content = "wif copied to clipboard";
+        }
+        private void Addr_DbClick(object sender, RoutedEventArgs e)
+        {
+            Clipboard.Copy2(addrTb.Text);
+            copyInfoLb.Content = "address copied to clipboard";
         }
 
 
@@ -125,11 +145,16 @@ namespace BtcIO_Avalonia
 
         private void NewAddrWif()
         {
-            if (netCheck1 != null && seedTb != null && newAddrTypeCombo != null && addrTb != null && newAddrTb != null && newWifTb != null)
+            if (netTypeCombo != null && seedTb != null && newAddrTypeCombo != null && addrTb != null && newAddrTb != null && newWifTb != null)
             {
-
+                if(string.IsNullOrEmpty(seedTb.Text))
+                {
+                    newAddrTb.Text = "";
+                    newWifTb.Text = "";
+                    return;
+                }
                 var seed = seedTb.Text + indexTb.Text;
-                var net = (bool)netCheck1.IsChecked ? "main" : "test3";
+                var net = netTypeCombo.SelectedIndex == 0 ? "main" : "test3";
                 var addrtype = newAddrTypeCombo.SelectedIndex;
 
                 var aw = WalletTools.NewWifAddr(seed, net, addrtype);
@@ -141,31 +166,47 @@ namespace BtcIO_Avalonia
                 addrFromTb.Text = aw.address;
 
                 wifTb.Text = aw.wif;
+
+                copyInfoLb.Content = "double-click field to copy";
             }
         }
 
         private void NewAddress_Click(object sender, RoutedEventArgs e)
         {
-            seedTb.Text = Tech.RandomSeed();
+            seedTb.Text = Tech.RandomSeed(userEntropy);
             NewAddrWif();
         }
 
 
         private void seedTb_TextChanged(object sender, KeyEventArgs e)
         {
+            entropyChB.IsChecked = false;
             NewAddrWif();
         }
 
         private void seedTb_TextInput(object sender, TextInputEventArgs e)
         {
+            entropyChB.IsChecked = false;
             NewAddrWif();
         }
 
-        private void NetCheck1_OnChecked(object sender, RoutedEventArgs e)
+        private byte[] userEntropy = null;
+        private async void Entropy_OnChecked(object sender, RoutedEventArgs e)
         {
+            var dew = new DrawEntropyWindow();
+
+            userEntropy = await dew.ShowDialog<byte[]>(this);
+            seedTb.Text = Tech.RandomSeed(userEntropy);
             NewAddrWif();
         }
 
+        private async void Entropy_UnChecked(object sender, RoutedEventArgs e)
+        {
+
+            userEntropy = null;
+            seedTb.Text = Tech.RandomSeed(userEntropy);
+            NewAddrWif();
+        }
         private void NewAddrTypeCombo_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             NewAddrWif();
@@ -175,7 +216,10 @@ namespace BtcIO_Avalonia
         {
             NewAddrWif();
         }
-
+        private void indexTb_TextInput(object sender, TextInputEventArgs e)
+        {
+            NewAddrWif();
+        }
 
     }
 }
