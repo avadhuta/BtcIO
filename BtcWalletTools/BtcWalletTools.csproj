@@ -20,4 +20,8 @@
     <PackageReference Include="QBitNinja.Client" Version="1.0.3.52" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\xNet\xNet.csproj" />
+  </ItemGroup>
+
 </Project>

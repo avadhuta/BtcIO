@@ -225,13 +225,19 @@ namespace BtcIO
 
         private static void PrintTXDetails((Transaction tx, List<KeyValuePair<string, decimal>> toList, string note) t)
         {
-            //Console.WriteLine("JSON:");
-            //Console.WriteLine(t);
+            Console.WriteLine("JSON:");
+            Console.WriteLine(t);
 
             //Console.WriteLine();
             //Console.WriteLine("HEX:");
             //Console.WriteLine(t.tx.ToHex());
             //Console.WriteLine();
+
+            if (t.tx == null)
+            {
+                Console.WriteLine(t.note);
+                return;
+            }
 
             Console.ForegroundColor = ConsoleColor.Red;
 

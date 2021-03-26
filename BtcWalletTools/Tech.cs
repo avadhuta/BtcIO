@@ -10,11 +10,39 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
+using xNet;
+using HttpStatusCode = System.Net.HttpStatusCode;
+using Stream = System.IO.Stream;
 
 namespace BtcWalletTools
 {
     public static class Tech
     {
+
+        public static string webreqTor(string url, string method = "GET", string content = "")
+        {
+            try
+            {
+                using var request = new HttpRequest { Proxy = Socks5ProxyClient.Parse("127.0.0.1:9150") };
+
+
+                if (method == "POST" && content != "")
+                {
+                    var data = Encoding.ASCII.GetBytes(content);
+                    return request.Post(url, data, "application/json").ToString();
+                }
+
+
+                return request.Get(url).ToString();
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+
+            return null;
+        }
+
 
         public static string webreq(string url, string method = "GET", string content = "")
         {

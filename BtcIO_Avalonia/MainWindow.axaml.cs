@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +14,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using BtcIO;
 using BtcWalletTools;
+using BtcWalletTools.Your.Namespace.Security;
 using Application = Avalonia.Application;
 using Window = Avalonia.Controls.Window;
 
@@ -28,7 +32,7 @@ namespace BtcIO_Avalonia
 
         private Label ballLabel;
         private TextBox addrTb;
-        private CheckBox entropyChB;
+        private CheckBox entropyChB, useTorCh;
 
         private void InitializeComponent()
         {
@@ -41,7 +45,7 @@ namespace BtcIO_Avalonia
             newWifTb = this.FindControl<TextBox>("newWifTb");
             newAddrTb = this.FindControl<TextBox>("newAddrTb");
             entropyChB = this.FindControl<CheckBox>("entropyChB");
-            copyInfoLb = this.FindControl<Label>("copyInfoLb");
+
 
             ballLabel = this.FindControl<Label>("ballLabel");
             addrTb = this.FindControl<TextBox>("addrTb");
@@ -54,6 +58,7 @@ namespace BtcIO_Avalonia
             addrFromTb = this.FindControl<TextBox>("addrFromTb");
             addrToTb = this.FindControl<TextBox>("addrToTb");
             TxTb = this.FindControl<TextBox>("TxTb");
+            useTorCh = this.FindControl<CheckBox>("useTorCh");
 
 
 
@@ -62,7 +67,7 @@ namespace BtcIO_Avalonia
 
 
         private TextBox valueTb, feeTb, wifTb, addrFromTb, addrToTb, TxTb, indexTb, seedTb, newWifTb, newAddrTb;
-        private Label txLabel, copyInfoLb;
+        private Label txLabel;
         private ComboBox newAddrTypeCombo, netTypeCombo;
 
 
@@ -70,7 +75,7 @@ namespace BtcIO_Avalonia
         {
             string net = "test3";
             var a = addrTb.Text;
-            if(a==null) return;
+            if (a == null) return;
 
             var c0 = a[0];
             if (c0 == '3' || c0 == '1' || c0 == 'b') net = "main";
@@ -80,21 +85,6 @@ namespace BtcIO_Avalonia
             ballLabel.Content = b;
         }
 
-        private void Seed_DbClick(object sender, RoutedEventArgs e)
-        {
-            Clipboard.Copy2(seedTb.Text);
-            copyInfoLb.Content = "seed phrase copied to clipboard";
-        }
-        private void Wif_DbClick(object sender, RoutedEventArgs e)
-        {
-            Clipboard.Copy2(wifTb.Text);
-            copyInfoLb.Content = "wif copied to clipboard";
-        }
-        private void Addr_DbClick(object sender, RoutedEventArgs e)
-        {
-            Clipboard.Copy2(addrTb.Text);
-            copyInfoLb.Content = "address copied to clipboard";
-        }
 
 
         private async void SendBtc_Click(object sender, RoutedEventArgs e)
@@ -102,12 +92,12 @@ namespace BtcIO_Avalonia
 
             decimal value = 0, fee = 0.0001m;
             var pv = decimal.TryParse(valueTb.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out value);
-            var pf = decimal.TryParse(feeTb.Text,NumberStyles.Any, CultureInfo.InvariantCulture, out fee);
+            var pf = decimal.TryParse(feeTb.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out fee);
 
             if (pv)
             {
                 var t = WalletTools.Sendbtc2One(wifTb.Text, addrFromTb.Text, addrToTb.Text, value, fee);
-                if(t.tx==null) return;
+                if (t.tx == null) return;
 
                 var m = $"you send to:\n";
                 foreach (var p in t.toList) m += $"{p.Key} : {p.Value}\n";
@@ -120,10 +110,10 @@ namespace BtcIO_Avalonia
 
                 if (sendAprove)
                 {
-                    var res = WalletTools.PushTx2Bc(t.note, t.tx);
+                    var res = WalletTools.PushTx2Bc(t.note, t.tx, (bool)useTorCh.IsChecked);
                     //  var res = PushTx2Ninja(netStr, transaction,client);
 
-                    if (res.hash != null)
+                    if (res.suc && res.hash.Length > 5)
                     {
                         TxTb.Text = res.hash;
                         txLabel.IsVisible = true;
@@ -147,7 +137,7 @@ namespace BtcIO_Avalonia
         {
             if (netTypeCombo != null && seedTb != null && newAddrTypeCombo != null && addrTb != null && newAddrTb != null && newWifTb != null)
             {
-                if(string.IsNullOrEmpty(seedTb.Text))
+                if (string.IsNullOrEmpty(seedTb.Text))
                 {
                     newAddrTb.Text = "";
                     newWifTb.Text = "";
@@ -167,7 +157,7 @@ namespace BtcIO_Avalonia
 
                 wifTb.Text = aw.wif;
 
-                copyInfoLb.Content = "double-click field to copy";
+
             }
         }
 
@@ -175,6 +165,65 @@ namespace BtcIO_Avalonia
         {
             seedTb.Text = Tech.RandomSeed(userEntropy);
             NewAddrWif();
+        }
+
+
+
+        private async void Save_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var seed = seedTb.Text;
+
+                var sfd = new SaveFileDialog();
+                var p = await sfd.ShowAsync(this);
+
+                if (p!=null && seed != null && seed!="")
+                {
+                    var pw = new PasswordWindow();
+                    var pass = await pw.ShowDialog<string>(this);
+
+                    string walletText = "";
+                    if (pass != null) walletText = AesCrypto.Encrypt(seed, pass);
+                    else walletText = seed;
+
+                    File.WriteAllText(p, walletText);
+                }
+            }
+            catch (Exception exception)
+            {
+
+            }
+        }
+
+        private async void Open_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog ofd = new OpenFileDialog();
+                var p = await ofd.ShowAsync(this);
+
+
+                if (p.Length > 0)
+                {
+                    var pw = new PasswordWindow();
+                    var pass = await pw.ShowDialog<string>(this);
+
+                    var txt = File.ReadAllText(p[0]);
+
+                    string seed;
+                    if (pass != null) seed = AesCrypto.Decrypt(txt, pass);
+                    else seed = txt;
+
+                    seedTb.Text = seed;
+
+                    NewAddrWif();
+                }
+            }
+            catch (Exception exception)
+            {
+
+            }
         }
 
 

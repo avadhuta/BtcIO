@@ -27,8 +27,11 @@ namespace BtcIO
 
         static txref[] UnspenttxBc(string addr, string net = "test3")
         {
-            var req = Tech.webreq($"https://api.blockcypher.com/v1/btc/{net}/addrs/" + addr + "?unspentOnly=true&includeScript=true");
+            var url = $"https://api.blockcypher.com/v1/btc/{net}/addrs/{addr}?unspentOnly=true&includeScript=true";
+            var req = Tech.webreq(url);
+
             if (req == null) return null;
+
             try
             {
                 var res = JsonConvert.DeserializeObject<txxx>(req).txrefs.ToArray();
@@ -36,17 +39,23 @@ namespace BtcIO
             }
             catch (Exception e)
             {
-                if(req.Contains("unconfirmed_balance")) throw new Exception("there are unconfirmed transactions, wait until they are confirmed");
-                return null;
+                throw new Exception("UnspenttxBc JsonConvert.DeserializeObject<txxx> error, maybe there are unconfirmed transactions, wait until they are confirmed");
             }
 
         }
 
-        public static (bool suc, string hash) PushTx2Bc(string netStr, Transaction tx)
+        public static (bool suc, string hash) PushTx2Bc(string netStr, Transaction tx, bool useTor = false)
         {
             try
             {
-                var req = Tech.webreq($"https://api.blockcypher.com/v1/btc/{netStr}/txs/push", "POST", JsonConvert.SerializeObject(new { tx = tx.ToHex() }));
+                string req = "";
+
+
+                if (useTor) 
+                    req = Tech.webreqTor( $"https://api.blockcypher.com/v1/btc/{netStr}/txs/push", "POST", JsonConvert.SerializeObject(new { tx = tx.ToHex() }));
+                else 
+                    req = Tech.webreq($"https://api.blockcypher.com/v1/btc/{netStr}/txs/push", "POST", JsonConvert.SerializeObject(new { tx = tx.ToHex() }));
+
                 var parse = JsonConvert.DeserializeObject<BCtcPushResult>(req);
 
                 return (true,parse.tx.hash);
@@ -270,7 +279,7 @@ namespace BtcIO
             }
             catch (Exception e)
             {
-                return (null, null, e.ToString());
+                return (null, null, e.Message);
             }
 
         }
